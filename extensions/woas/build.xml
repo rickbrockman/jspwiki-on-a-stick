@@ -1,0 +1,180 @@
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.  
+-->
+
+<!--
+  This project builds a "WikiOnAStick" based on JSPWiki.
+-->
+<project name="woas" default="woas:dist" basedir=".">
+
+  <!-- the svn checkout directory of JSPWiki -->
+  <property name="jspwiki.base.dir" value="${basedir}/../.." />
+  
+  <!-- the temporary build directory of JSPWiki  -->
+  <property name="jspwiki.target.dir" value="${java.io.tmpdir}/${user.name}/JSPWiki" />
+   
+  <!-- define the temporary build directory -->
+  <property name="jspwiki.woas.target.dir" value="${basedir}/target" />
+  
+  <!-- the temporary directory for the build -->
+  <property name="jspwiki.woas.unpack.dir" value="${jspwiki.woas.target.dir}/unpack" />
+
+  <!-- the language bundle to package -->
+  <property name="jspwiki.woas.data.language" value="en" />
+  
+  <!-- the directory where to build the exploded application -->
+  <property name="jspwiki.woas.assembly.dir" value="${jspwiki.woas.target.dir}/woas" />
+
+  <!-- the current version -->
+  <property name="jspwiki.woas.version" value="3.8.2" />
+  
+  <!-- ############################################################## -->
+  <!-- General Targets                                                -->
+  <!-- ############################################################## -->
+  
+  <target name="woas:clean" description="cleans the project">
+    <delete dir="${jspwiki.woas.target.dir}"/>  
+  </target>
+
+  <!-- ############################################################## -->
+  <!-- WOAS Targets                                                   -->
+  <!-- ############################################################## -->
+  
+  <target name="woas:prepare" description="creates an exploded application layout">
+    <!-- create the directory where we assembly all parts -->
+    <mkdir dir="${jspwiki.woas.assembly.dir}"/>
+    <!-- copy the localized wiki pages to the assembly directory -->
+    <copy todir="${jspwiki.woas.assembly.dir}/data/wiki">
+      <fileset dir="${jspwiki.base.dir}/src/wikipages/${jspwiki.woas.data.language}"/>
+    </copy>
+    <!-- unpack the jetty installation -->
+    <unzip src="${basedir}/lib/jetty-minimal-6.1.10.zip" dest="${jspwiki.woas.assembly.dir}"/>
+    <!-- unpack the JSPWiki webapp -->
+    <unwar src="${jspwiki.target.dir}/install/JSPWiki.war" dest="${jspwiki.woas.assembly.dir}/webapps/wiki"/>
+		<!-- move the WEB-INF/lib to share the libraries for all web applications -->
+	  <move todir="${jspwiki.woas.assembly.dir}/lib">
+  	  <fileset dir="${jspwiki.woas.assembly.dir}/webapps/wiki/WEB-INF/lib">
+    	  <include name="**/*.jar"/>
+	    </fileset>
+  	</move>
+    <!-- copy the start scripts, e.g. woas.sh -->
+    <copy todir="${jspwiki.woas.assembly.dir}">
+      <fileset dir="${basedir}/bin">
+        <include name="woas.*"/>
+      </fileset>
+    </copy>
+    <!-- make the start scripts executable -->
+    <chmod dir="${jspwiki.woas.assembly.dir}" includes="*.sh" perm="ugo+x"/>    
+    <!-- create the temp directory -->
+    <mkdir dir ="${jspwiki.woas.assembly.dir}/temp"/>    
+    <mkdir dir ="${jspwiki.woas.assembly.dir}/temp/jsp"/>    
+    <!-- copy the JSPWiki configuration file  -->
+    <copy 
+      file="${basedir}/conf/jspwiki.properties" 
+      overwrite="true" 
+      todir="${jspwiki.woas.assembly.dir}/webapps/wiki/WEB-INF/"
+    />    
+    <!-- copy our custom resources -->
+    <copy todir="${jspwiki.woas.assembly.dir}">
+      <fileset dir="${basedir}/resources/woas">
+        <include name="**/*.*"/>
+      </fileset>
+    </copy>
+    <!-- copy README.txt and LICENCE.txt into the assembly directory -->
+    <copy todir="${jspwiki.woas.assembly.dir}">
+      <fileset dir="${basedir}">
+        <include name="LICENSE.txt"/>
+        <include name="README.txt"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="woas:mac-app" description="creates an Mac OS X application wrapper">
+    <typedef 
+      name="jarbundler" 
+      classname="net.sourceforge.jarbundler.JarBundler" 
+      classpath="${basedir}/resources/ant/jarbundler-2.0.0.jar" 
+    />   
+    <jarbundler 
+      dir="${jspwiki.woas.assembly.dir}"
+      name="woas"
+      mainclass="org.mortbay.start.Main" 
+      jar="${jspwiki.woas.assembly.dir}/start.jar" 
+      icon="${basedir}/resources/macos/jspwiki.icns"
+      jvmversion="1.5+"
+      version="${jspwiki.woas.version}"
+      stubfile="${basedir}/resources/macos/WikiOnAStick"
+      infostring="JSPWiki ${jspwiki.woas.version}"
+    />
+    <!-- make the Mac OS X stub executable -->
+    <chmod file="${jspwiki.woas.assembly.dir}/woas.app/Contents/MacOS/WikiOnAStick" perm="ugo+x"/>
+  </target>
+  
+  <target name="woas:windows-app" description="creates an windows application wrapper">
+    <taskdef 
+      name="launch4j"
+      classname="net.sf.launch4j.ant.Launch4jTask"
+      classpath="${basedir}/resources/ant/launch4j-3.0.1.jar:${basedir}/resources/ant/xstream.jar" 
+    />
+    <launch4j>
+      <config 
+        headerType="console" 
+        jar="${jspwiki.woas.assembly.dir}/start.jar" 
+        outfile="${basedir}/bin/woas.exe" 
+        errTitle="WikiOnAStick" 
+        chdir="." 
+        customProcName="true" 
+        icon="${basedir}/resources/windows/jspwiki.ico"
+        >
+        <singleInstance mutexName="org.apache.jspwiki.wikionastick" />
+        <jre minVersion="1.5.0" />
+        <versionInfo
+          fileVersion="${jspwiki.woas.version}"
+          txtFileVersion="JSPWiki ${jspwiki.woas.version}"
+          fileDescription="WikiOnAStick"
+          copyright="Apache Software Licence 2.0"
+          productVersion="${jspwiki.woas.version}"
+          txtProductVersion="JSPWiki ${jspwiki.woas.version}"
+          productName="WikiOnAStick"
+          companyName="ASF"
+          internalName="woas"
+          originalFilename="woas.exe"
+        />        
+      </config>  
+    </launch4j>
+  </target>
+
+  <target name="woas:build" description="builds the exploded application">
+    <antcall target="woas:prepare"/>
+    <antcall target="woas:mac-app"/>    
+  </target>
+
+  <target name="woas:dist" depends="woas:clean, woas:build" description="creates the distribution">
+    <!-- build binary distribution -->
+    <zip destfile="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-bin.zip" basedir="${jspwiki.woas.assembly.dir}"/>
+    <tar destfile="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-bin.tar" basedir="${jspwiki.woas.assembly.dir}"/>
+    <gzip destfile="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-bin.tar.gz" src="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-bin.tar"/>
+    <delete file="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-bin.tar"/>
+    <!-- build source distribution -->    
+    <zip destfile="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-src.zip" basedir="${basedir}" excludes="target/**"/>
+    <tar destfile="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-src.tar" basedir="${basedir}" excludes="target/**"/>
+    <gzip destfile="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-src.tar.gz" src="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-src.tar"/>
+    <delete file="${jspwiki.woas.target.dir}/woas-${jspwiki.woas.version}-src.tar"/>    
+  </target>
+  
+</project>
