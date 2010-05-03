@@ -31,3 +31,5 @@ Wiki On A Stick (WOAS) moves a JSPWiki on an USB stick providing start scripts t
 ------------------------------------------------------------------------------------------------------------------------
 
 3.1) Application does not start under Mac OS X - make sure that 'woas.app/Contents/MacOS/WikiOnAStick is executable.
+
+3.2) Application does not start under Unix - make sure that 'woas.sh' is executable

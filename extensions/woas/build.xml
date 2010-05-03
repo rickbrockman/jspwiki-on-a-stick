@@ -41,7 +41,7 @@
   <property name="jspwiki.woas.assembly.dir" value="${jspwiki.woas.target.dir}/woas" />
 
   <!-- the current version -->
-  <property name="jspwiki.woas.version" value="3.8.2" />
+  <property name="jspwiki.woas.version" value="2.8.3.2" />
   
   <!-- ############################################################## -->
   <!-- General Targets                                                -->

@@ -2,9 +2,9 @@
 
 Wiki On A Stick (WOAS) moves a JSPWiki on an USB stick providing start scripts to run it on Windows, Linux and Mac OS X. This allows you to carry around your JSPWiki and use it on any computer you are working with.
 
-!!Release 3.8.2
+!!Release 2.8.3
 
-* Upgraded to JSPWiki 3.8.2
+* Upgraded to JSPWiki 2.8.3
 
 * Moving the JSPWiki libraries to the Jetty library directory to allow sharing between multiple web applications. In my case I have a separate web application running a wiki for each company I worked for.
 
