@@ -26,7 +26,7 @@
   <property name="jspwiki.base.dir" value="${basedir}/../.." />
   
   <!-- the temporary build directory of JSPWiki  -->
-  <property name="jspwiki.target.dir" value="${java.io.tmpdir}/${user.name}/JSPWiki" />
+  <property name="jspwiki.target.dir" value="${jspwiki.base.dir}/build" />
    
   <!-- define the temporary build directory -->
   <property name="jspwiki.woas.target.dir" value="${basedir}/target" />
@@ -65,13 +65,13 @@
     <!-- unpack the jetty installation -->
     <unzip src="${basedir}/lib/jetty-minimal-6.1.10.zip" dest="${jspwiki.woas.assembly.dir}"/>
     <!-- unpack the JSPWiki webapp -->
-    <unwar src="${jspwiki.target.dir}/install/JSPWiki.war" dest="${jspwiki.woas.assembly.dir}/webapps/wiki"/>
-		<!-- move the WEB-INF/lib to share the libraries for all web applications -->
-	  <move todir="${jspwiki.woas.assembly.dir}/lib">
-  	  <fileset dir="${jspwiki.woas.assembly.dir}/webapps/wiki/WEB-INF/lib">
-    	  <include name="**/*.jar"/>
-	    </fileset>
-  	</move>
+    <unwar src="${jspwiki.target.dir}/JSPWiki.war" dest="${jspwiki.woas.assembly.dir}/webapps/wiki"/>
+    <!-- move the WEB-INF/lib to share the libraries for all web applications -->
+    <move todir="${jspwiki.woas.assembly.dir}/lib">
+      <fileset dir="${jspwiki.woas.assembly.dir}/webapps/wiki/WEB-INF/lib">
+        <include name="**/*.jar"/>
+      </fileset>
+    </move>
     <!-- copy the start scripts, e.g. woas.sh -->
     <copy todir="${jspwiki.woas.assembly.dir}">
       <fileset dir="${basedir}/bin">

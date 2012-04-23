@@ -9,7 +9,7 @@ Wiki On A Stick (WOAS) moves a JSPWiki on an USB stick providing start scripts t
 2) How to build WOAS
 ------------------------------------------------------------------------------------------------------------------------
 
-2.1) Check out JSPWiki 3.8.2 from Subversion
+2.1) Check out JSPWiki 2.8.4 from Subversion
 
 2.2) Copy the 'extensions' directory to the JSPWiki checkout folder
 
